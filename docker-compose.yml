@@ -1,0 +1,49 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-database
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+#      - ./sql/create_initial_db.sql:/docker-entrypoint-initdb.d/create_initial_db.sql
+    tty: true
+    env_file:
+      - ./env/postgres.env
+    ports:
+      - '5432:5432'
+    networks:
+      - nest_app
+    restart: unless-stopped
+#    command: /bin/bash
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    ports:
+      - '5555:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ioannis@iantoniou.gr
+      PGADMIN_DEFAULT_PASSWORD: admin
+    networks:
+      - nest_app
+    restart: unless-stopped
+  nestjs-backend:
+    build: .
+    container_name: nestjs-backend
+    env_file:
+      - ./env/backend.env
+    depends_on:
+      - postgres
+    networks:
+      - nest_app
+    tty: true
+    volumes:
+      - ./:/app
+networks:
+  nest_app:
+volumes:
+  pgdata:
+  pgadmin:
